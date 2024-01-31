@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:todo_with_bloc/bloc/todo/todos_bloc.dart';
 import 'package:todo_with_bloc/models/todo_model.dart';
 
 class AddTodoPage extends StatelessWidget {
@@ -11,41 +13,47 @@ class AddTodoPage extends StatelessWidget {
     TextEditingController _description = TextEditingController();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Yeni Görev Ekle'),
+        title: const Text('BloC Pattern: Add a To Do'),
       ),
-      body: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              _inputField('ID', _id),
-              _inputField('Task', _task),
-              _inputField('Description', _description),
-              ElevatedButton(
-                onPressed: () {
-                  var todo = Todo(
-                    id: _id.value.text,
-                    task: _task.value.text,
-                    description: _description.value.text,
-                  );
-
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurpleAccent,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0, vertical: 8.0),
-                  child: const Text(
-                    'Ekle',
-                    style: TextStyle(color: Colors.white),
-                  ),
+      body: BlocBuilder<TodosBloc, TodosState>(
+        builder: (context, state) {
+          if (state is TodoLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (state is TodosLoaded) {
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    _inputField('ID', _id),
+                    _inputField('Task', _task),
+                    _inputField('Description', _description),
+                    ElevatedButton(
+                      onPressed: () {
+                        var todo = Todo(
+                          id: _id.value.text,
+                          task: _task.value.text,
+                          description: _description.value.text,
+                        );
+                        context.read<TodosBloc>().add(AddTodo(todo: todo));
+                        Navigator.pop(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Theme.of(context).primaryColor,
+                      ),
+                      child: const Text('Add To Do'),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            );
+          } else {
+            return const Text('Something went wrong.');
+          }
+        },
       ),
     );
   }
